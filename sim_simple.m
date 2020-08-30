@@ -1,7 +1,7 @@
 %% ------------------
 %% FMCW RX Simulation
 %% ------------------
-fminR = 20e3;
+fminR = 17e3;
 B = 5e3;
 Fs = 48000;
 vs = 340;
@@ -22,7 +22,7 @@ D = 4;
 tau = D/vs; % delay
 td = t - tau;
 att = (D/2)^-4; % half of distance 
-att = 1;
+%att = 1;
 Sr = att * cos(2*pi*(1/2*td.^2*B/sampleInterval+fminR*td)); % received Rx signal after tau delay S(t-tau) with attenuation
 
 Sm = St .* Sr; % mixing St and Sr 
@@ -33,5 +33,6 @@ Sm = St .* Sr; % mixing St and Sr
 figure; 
 dist = vs*f*sampleInterval*1000/B;
 plot(dist, fft1); % should peak at D 
+xlim([0 10]);
 max(fft1)
 
