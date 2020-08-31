@@ -35,6 +35,8 @@ end
 
 if(addNoise)
     Sr_noise = Sr + 1e-2 * randn(size(Sr));
+else
+    Sr_noise = Sr;
 end
 
 end

@@ -1,11 +1,10 @@
-function [profile] = dechirp_fmcw(Fs, fminR, B, vs, sampleInterval, nChirps, Sr, algo_name)
+function [f, profile] = dechirp_fmcw(sOrigin, Fs, fminR, B, vs, sampleInterval, nChirps, Sr, algo_name)
 %fminR = 17e3;
 %B = 5e3;
 %Fs = 48000;
 %vs = 340;
 %sampleInterval=0.030; % 30 ms
 
-fmaxR = fminR + B;
 Ts=1/Fs;
 K=sampleInterval/Ts;
 
@@ -23,8 +22,8 @@ for c=1:nChirps
     dist = vs*f*sampleInterval*1000/B;
     plot(dist, fft1); % should peak at D
     hold on;
-    xlim([0 10]);
-    ylim([0 0.10]);
+    xlim([0 sOrigin*2]);
+    ylim([0 0.005]);
     profile = [profile; fft1];
 end
 title(algo_name)
