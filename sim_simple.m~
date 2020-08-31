@@ -41,17 +41,22 @@ end
 %figure; spectrogram(Sr_noise(1,:),'yaxis',128,120,128,Fs)
 
 % % de-chirping
-profile_mic1 = dechirp_fmcw(Fs, fminR, B, vs, sampleInterval, nChirps, Sr_noise(1,:), 'No Beam at Mic1');
-%profile_mic2 = dechirp_fmcw(Fs, fminR, B, vs, sampleInterval, nChirps, Sr_noise(2,:));
+profile_mic1 = dechirp_fmcw(Fs, fminR, B, vs, sampleInterval, nChirps, Sr_noise(1,:));
+profile_mic2 = dechirp_fmcw(Fs, fminR, B, vs, sampleInterval, nChirps, Sr_noise(2,:));
 
 
 incidentAz = 90;
 fc = (fminR + fmaxR)/2;
 [y_DAS, y_MVDR, y_LCMV, y_LP, y_PS] = beamform(incidentAz, fc, vs, Sr_noise, rxarray, m_xPos, m_yPos, m_zPos);
 
-profile_DAS = dechirp_fmcw(Fs, fminR, B, vs, sampleInterval, nChirps, y_DAS, 'DAS');
-profile_MVDR = dechirp_fmcw(Fs, fminR, B, vs, sampleInterval, nChirps, y_MVDR, 'MVDR');
-profile_LCMV = dechirp_fmcw(Fs, fminR, B, vs, sampleInterval, nChirps, y_LCMV, 'LCMV');
-profile_LP = dechirp_fmcw(Fs, fminR, B, vs, sampleInterval, nChirps, y_LP, 'LP');
-profile_PS = dechirp_fmcw(Fs, fminR, B, vs, sampleInterval, nChirps, y_PS, 'PS');
-
+Sm_beamed = St .* y_PS; % mixing St and Sr
+% de-chirp
+figure;
+for c=1:nChirps
+    [f,fft2] = plotFFT(Sm_beamed(1 + (c-1) * K : c*K),Fs);
+    dist = vs*f*sampleInterval*1000/B;
+    plot(dist, fft2); % should peak at D
+    hold on;
+    xlim([0 10]);
+    max(fft2)
+end
