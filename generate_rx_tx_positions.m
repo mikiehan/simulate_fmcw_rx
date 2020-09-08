@@ -10,6 +10,20 @@ function [s_Pos, m_xPos, m_yPos, m_zPos,rxarray,distance]  = generate_rx_tx_posi
 
 microphone = phased.OmnidirectionalMicrophoneElement('FrequencyRange',[20 fmaxR]);
 rxarray = phased.UCA('NumElements', Nr ,'Radius', radius, "Element", microphone);
+%rxarray = phased.ULA('NumElements',Nr,'ElementSpacing',radius, "Element", microphone);
+% pos0 = getElementPosition(rxarray0); 
+% xPos = pos0(2,:);
+% yPos = pos0(1,:);
+% zPos = pos0(3,:);
+% 
+% rxarray = phased.ConformalArray(...
+%     'ElementPosition',[xPos;yPos;zPos],...
+%     'Element', microphone);
+%     %'ElementNormal',[ones(1,Nr)*90;zeros(1,Nr)],...
+
+figure;
+viewArray(rxarray, 'ShowNormals', true);
+
 pos = getElementPosition(rxarray);
 m_xPos = pos(1,:); % x-coord
 m_yPos = pos(2,:); % y-coord

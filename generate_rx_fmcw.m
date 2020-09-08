@@ -13,6 +13,9 @@ function [Sr_noise, Sr] = generate_rx_fmcw(fminR, B, Fs, vs, sampleInterval, nCh
 %Nr = 8; % 8 microphones
 %Origin = 4; % 4 meter away approx.
 %addNoise = true;
+fmaxR = fminR + B;
+fc = (fminR + fmaxR)/2;
+lambda = vs/fc; 
 
 Ts=1/Fs;
 K=sampleInterval/Ts;
@@ -26,7 +29,7 @@ Sr = zeros(Nr, K * nChirps);
 Sr_noise = zeros(Nr, K * nChirps);
 
 for i=1:Nr
-    att(i) = (distance(i)/2)^-4; % attenuation
+    att(i) = (lambda/(4*pi*(distance(i)/2)))^4; % attenuation
     tau(i) = distance(i)/vs; % delay
     td = t - tau(i); % new time tics with delay
     Sr0(i, :) = att(i) * cos(2*pi*(1/2*td.^2*B/sampleInterval+fminR*td)); % received Rx signal after tau delay S(t-tau) with attenuation

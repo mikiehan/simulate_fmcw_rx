@@ -23,7 +23,7 @@ for c=1:nChirps
     plot(dist, fft1); % should peak at D
     hold on;
     xlim([0 sOrigin*2]);
-    ylim([0 0.005]);
+    ylim([0 0.01]);
     profile = [profile; fft1];
 end
 title(algo_name)

@@ -14,6 +14,7 @@ sOrigin = 8; % approx. 5 meter away (round-trip) from sound source to microphone
 addNoise = true;
 
 fmaxR = fminR + B;
+fc = (fminR + fmaxR)/2;
 Ts=1/Fs;
 K=sampleInterval/Ts;
 
@@ -33,7 +34,7 @@ St = repmat(St0, 1 , nChirps);
 % plot(Sr_noise(1, :));
 % figure; spectrogram(Sr_noise(1,:),'yaxis',128,120,128,Fs)
 
-% Apply fft filter 
+% Apply fft filter
 for mic = 1 : Nr
     Sr_noise(mic, :) = fftFilter(Sr_noise(mic, :),Fs,fminR,fmaxR,50);
 end
@@ -46,27 +47,71 @@ end
 
 
 incidentAz = 90;
-fc = (fminR + fmaxR)/2;
-[y_DAS, y_MVDR, y_LCMV, y_LP, y_PS] = beamform(incidentAz, fc, vs, Sr_noise, rxarray, m_xPos, m_yPos, m_zPos);
+[y_DAS, y_MVDR, y_LCMV, y_LP] = beamform(incidentAz, fc, vs, Sr_noise, rxarray, m_xPos, m_yPos, m_zPos, Nr);
 
 [f, profile_DAS] = dechirp_fmcw(sOrigin, Fs, fminR, B, vs, sampleInterval, nChirps, y_DAS, 'DAS');
 [f, profile_MVDR] = dechirp_fmcw(sOrigin, Fs, fminR, B, vs, sampleInterval, nChirps, y_MVDR, 'MVDR');
 [f, profile_LCMV] = dechirp_fmcw(sOrigin, Fs, fminR, B, vs, sampleInterval, nChirps, y_LCMV, 'LCMV');
 [f, profile_LP] = dechirp_fmcw(sOrigin, Fs, fminR, B, vs, sampleInterval, nChirps, y_LP, 'LP');
-[f, profile_PS] = dechirp_fmcw(sOrigin, Fs, fminR, B, vs, sampleInterval, nChirps, y_PS, 'PS');
+%[f, profile_PS] = dechirp_fmcw(sOrigin, Fs, fminR, B, vs, sampleInterval, nChirps, y_PS, 'PS');
 
 figure;
 dist = vs*f*sampleInterval*1000/B;
-plot(dist, profile_mic1(1,:)); 
+plot(dist, profile_mic1(1,:));
 hold on;
 plot(dist, profile_DAS(1,:));
 plot(dist, profile_MVDR(1,:));
 plot(dist, profile_LCMV(1,:));
 plot(dist, profile_LP(1,:));
-plot(dist, profile_PS(1,:));
+%plot(dist, profile_PS(1,:));
 xlim([0 sOrigin*2]);
 title ('FMCW Profile')
 xlabel('Distance (m)')
 ylabel('Amplitude')
-legend("No Beam at Mic1","DAS","MVDR", "LCMV", "LP", "PS")
+legend("No Beam at Mic1","DAS","MVDR", "LCMV", "LP") %, "PS")
 
+%% compare beamforming performance varing num mics used from 2 - Nr
+profile_DAS_mics = [];
+% profile_MVDR_mics = [];
+% profile_LCMV_mics = [];
+profile_LP_mics = [];
+%profile_PS_mics = [];
+
+for num_mics = 2:Nr
+    [y_DAS1, y_MVDR1, y_LCMV1, y_LP1] = beamform(incidentAz, fc, vs, Sr_noise, rxarray, m_xPos, m_yPos, m_zPos, num_mics);
+    
+    [f, profile_DAS1] = dechirp_fmcw(sOrigin, Fs, fminR, B, vs, sampleInterval, nChirps, y_DAS1, strcat('DAS w ', num2str(num_mics), ' mics'));
+%     [f, profile_MVDR1] = dechirp_fmcw(sOrigin, Fs, fminR, B, vs, sampleInterval, nChirps, y_MVDR1, 'MVDR');
+%     [f, profile_LCMV1] = dechirp_fmcw(sOrigin, Fs, fminR, B, vs, sampleInterval, nChirps, y_LCMV1, 'LCMV');
+     [f, profile_LP1] = dechirp_fmcw(sOrigin, Fs, fminR, B, vs, sampleInterval, nChirps, y_LP1, 'LP');
+%     [f, profile_PS1] = dechirp_fmcw(sOrigin, Fs, fminR, B, vs, sampleInterval, nChirps, y_PS1, 'PS');
+ 
+    profile_DAS_mics = [profile_DAS_mics; profile_DAS1(1,:)];
+    profile_LP_mics = [profile_LP_mics; profile_LP1(1,:)];
+end
+
+figure;
+dist = vs*f*sampleInterval*1000/B;
+plot(dist, profile_mic1(1,:));
+hold on;
+for num_mics = 2:Nr
+    plot(dist, profile_DAS_mics(num_mics-1,:));
+end 
+title ('FMCW Profile w varying num mics beamforming (DAS)')
+xlim([0 sOrigin*2]);
+xlabel('Distance (m)')
+ylabel('Amplitude')
+legend("No beam", "2 Mics","3 Mics","4 Mics", "5 Mics", "6 Mics", "7 Mics", "8 Mics")
+
+figure;
+dist = vs*f*sampleInterval*1000/B;
+plot(dist, profile_mic1(1,:));
+hold on;
+for num_mics = 2:Nr
+    plot(dist, profile_LP_mics(num_mics-1,:));
+end 
+title ('FMCW Profile w varying num mics beamforming (LP)')
+xlim([0 sOrigin*2]);
+xlabel('Distance (m)')
+ylabel('Amplitude')
+legend("No beam", "2 Mics","3 Mics","4 Mics", "5 Mics", "6 Mics", "7 Mics", "8 Mics")
