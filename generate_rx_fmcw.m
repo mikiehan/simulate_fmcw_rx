@@ -29,8 +29,8 @@ Sr = zeros(Nr, K * nChirps);
 Sr_noise = zeros(Nr, K * nChirps);
 
 for i=1:Nr
-    att(i) = (lambda/(4*pi*(distance(i)/2)))^4; % attenuation
-    tau(i) = distance(i)/vs; % delay
+    att(i) = distance(i)^-4; % attenuation
+    tau(i) = distance(i)*2/vs; % delay
     td = t - tau(i); % new time tics with delay
     Sr0(i, :) = att(i) * cos(2*pi*(1/2*td.^2*B/sampleInterval+fminR*td)); % received Rx signal after tau delay S(t-tau) with attenuation
     Sr(i, :) = repmat(Sr0(i, :), 1 , nChirps);
