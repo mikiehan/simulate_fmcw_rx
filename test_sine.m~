@@ -1,0 +1,32 @@
+fs = 1000; % Sampling frequency (samples per second)
+dt = 1/fs; % seconds per sample
+StopTime = 0.25; % seconds
+t = (0:dt:StopTime)'; % seconds
+F = 60; % Sine wave frequency (hertz)
+data = sin(2*pi*F*t);
+t_tau = t - 0.025;
+data_tau = sin(2*pi*F*t_tau);
+
+figure;
+plot(t,data)
+hold on;
+plot(t_tau, data_tau);
+
+%%For one cycle get time period
+T = 1/F ;
+% time step for one time period
+tt = 0:dt:T+dt ;
+d = sin(2*pi*F*tt) ;
+tt_tau = tt - 0.025; % 0.0025 delay
+d_tau = sin(2*pi*F*tt_tau);
+figure;
+%plot(tt,d);
+hold on;
+plot(tt_tau, d_tau);
+
+x = 0.125;
+%d_tau_translate = d_tau * exp(1i*2*pi*x);
+
+d_tau_translate = d_tau * (cosd(60) - cos(2*pi*F*tt_tau) * s
+%figure;
+plot(tt_tau, d_tau_translate);

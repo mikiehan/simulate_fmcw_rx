@@ -1,6 +1,6 @@
 function maxIndex=syncFMCWSymbol(y,offsetIndex,y0,K)
 
-L=2*K;
+L=1*K;
 corr=zeros(1,L);
 maxIndex = 0;
 for i=1+offsetIndex:L+offsetIndex

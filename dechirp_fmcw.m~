@@ -10,20 +10,24 @@ K=sampleInterval/Ts;
 
 t=(0:K-1)*Ts;
 
+      cos(2*pi*(1/2*t.^2*B/sampleInterval+fmin*t));
 St0 = cos(2*pi*(1/2*t.^2*B/sampleInterval+fminR*t)); % original Tx signal
 St = repmat(St0, 1 , nChirps);
 
+%synchronizing
+
+yR0 = genChirp( Fs,on/1000,0,fmin*1000,B,1);
+
 %synchronizing to remove the intial noise
-% maxIndex=syncFMCWSymbol(Sr,0,St0,length(St0));
-% 
-% Sr = Sr(maxIndex:length(Sr));
-% St = St(1:length(Sr));
+maxIndex=syncFMCWSymbol(y,0,yR0,length(yR0));
+
+
 
 Sm = St .* Sr; % mixing St and Sr
 % de-chirp
 figure;
 profile = [];
-for c=1:nChirps-1
+for c=1:nChirps
     [f,fft1] = plotFFT(Sm(1 + (c-1) * K : c*K),Fs);
     dist = vs*f*sampleInterval*1000/B;
     plot(dist, fft1); % should peak at D
