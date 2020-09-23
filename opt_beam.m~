@@ -15,7 +15,15 @@ end
 
 % Maximize RSS (sum of each sample's absolute value)
 function obj = func_obj(x,r)
-    obj = sum(abs(x * r)) * -1;
+    [row, col] = size(r);
+    for k=1:row
+        x(k) * r(
+        for j=1:col
+            x(k) * r(k,j)
+        end
+        sum = sum + abs(x(k)*r(k,:));
+    end
+    obj = sum * -1;
 end
 
 
