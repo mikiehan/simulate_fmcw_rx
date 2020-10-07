@@ -12,7 +12,7 @@ Nr = 4; % 4 microphones
 rtDist = 8; % approx. round-trip distance from sound source to microphones
 xPosWall = 1; % side wall x position for multipath
 mpAngle = 60; % multipath angle in degree
-addNoise = true;
+%addNoise = true;
 
 fmaxR = fminR + B;
 fc = (fminR + fmaxR)/2;
@@ -45,7 +45,6 @@ aoa_direct = 90;
 %angle of arrival range 0:180 (Same definition as Dina Katabi RF-IDraw)
 
 aoa_multipath = 60;
-x2 = zeros(Nr, length(t)); % each row contains 1 multipath signal at mic_row
 d_prime = distance/2/sind(aoa_multipath); % distance at ref mic (last mic)
 
 distance_multipath = spacing*cosd(aoa_multipath)*[0:Nr-1] + d_prime;

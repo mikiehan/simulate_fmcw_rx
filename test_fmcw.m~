@@ -12,7 +12,7 @@ Nr = 4; % 4 microphones
 rtDist = 8; % approx. round-trip distance from sound source to microphones
 xPosWall = 1; % side wall x position for multipath
 mpAngle = 60; % multipath angle in degree
-addNoise = true;
+%addNoise = true;
 
 fmaxR = fminR + B;
 fc = (fminR + fmaxR)/2;
@@ -45,7 +45,6 @@ aoa_direct = 90;
 %angle of arrival range 0:180 (Same definition as Dina Katabi RF-IDraw)
 
 aoa_multipath = 60;
-x2 = zeros(Nr, length(t)); % each row contains 1 multipath signal at mic_row
 d_prime = distance/2/sind(aoa_multipath); % distance at ref mic (last mic)
 
 distance_multipath = spacing*cosd(aoa_multipath)*[0:Nr-1] + d_prime;
@@ -99,16 +98,21 @@ plot(real(y_MINE));
 
 hold on;
 plot(real(y_DAS));
-%plot(real(y_LCMV));
+plot(real(y_LCMV));
 %plot(real(y_MVDR));
 plot(real(y_MVDR2));
 plot(real(sig(1, :)));
 
-xlim([0 360]);
-%legend("MINE", "DAS", "LCMV", "MVDR2", "No Beam");
-legend("MINE", "DAS", "MVDR2", "No Beam");
+xlim([0 180]);
+legend("MINE", "DAS", "LCMV", "MVDR2", "No Beam");
+%legend("MINE", "DAS", "MVDR2", "No Beam");
 
-%legend("MINE", "MVDR", "MVDR2", "No Beam");
+% figure;
+% plot(real(y_MVDR2));
+% hold on;
+% plot(real(sig(1, :)));
+% xlim([0 180]);
+% legend("MVDR2", "No Beam");
 
 for mic = 1 : Nr
     sig(mic, :) = fftFilter(sig(mic, :),Fs,fminR,fmaxR,50);
@@ -120,12 +124,25 @@ end
 [f, profile_mic1] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, sig(1,:), 'No Beam at Mic1');
 
 [f, profile_DAS] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, y_DAS, 'DAS');
-[f, profile_MVDR] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, y_MVDR, 'MVDR');
+[f, profile_MVDR2] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, y_MVDR2, 'MVDR2');
 [f, profile_LCMV] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, y_LCMV, 'LCMV');
-[f, profile_LP] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, y_LP, 'LP');
+%[f, profile_LP] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, y_LP, 'LP');
 [f, profile_MINE] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, y_MINE, 'MINE');
 
 
 figure;
 dist = vs*f*sampleInterval*1000/B;
 plot(dist, profile_mic1(1,:));
+hold on;
+plot(dist, profile_DAS(1,:));
+plot(dist, profile_MVDR2(1,:));
+plot(dist, profile_LCMV(1,:));
+%plot(dist, profile_LP(1,:));
+plot(dist, profile_MINE(1,:));
+%plot(dist, profile_FR(1,:));
+%plot(dist, profile_PS(1,:));
+xlim([0 rtDist*2]);
+title ('FMCW Profile')
+xlabel('Distance (m)')
+ylabel('Amplitude')
+legend("No Beam at Mic1","DAS","MVDR2", "LCMV", "MINE") %"FR") %, "PS")
