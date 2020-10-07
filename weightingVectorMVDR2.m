@@ -23,7 +23,7 @@ R = inputSignal*inputSignal';
 % R = CSM(inputSignal, f0, fs, 64, 10);
 R = R + trace(R)/(P^2)*eye(P, P);
 R = R/P;
-R = pinv(R);
+R = inv(R);
 
 %Calculate weighting vector 
 w = zeros(M, N, P);

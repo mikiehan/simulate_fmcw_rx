@@ -4,7 +4,9 @@ B = 5e3;
 Fs = 48000;
 vs = 340;
 sampleInterval=0.030; % 30 ms
-simLenS =  10;
+%simLenS =  10;
+
+nChirps = 5;
 
 Nr = 4; % 4 microphones
 rtDist = 8; % approx. round-trip distance from sound source to microphones
@@ -20,6 +22,7 @@ spacing = lambda/2;
 
 Ts=1/Fs;
 K=sampleInterval/Ts;
+simLenS = nChirps * K / Fs;
 
 t=(0:K-1)*Ts;
 
@@ -33,9 +36,9 @@ t_tau = t-tau;
 
 x = zeros(Nr, length(t)); % each row contains direct path signal at mic_row
 for i=1:Nr
-    x(i, :) = att * sin(2*pi*fc*t_tau);
-    x(i, :) = att * exp(1i*2*pi*fc*t_tau);
-    %x(i, :) = att * cos(2*pi*(1/2*t_tau.^2*B/sampleInterval+fminR*t_tau));
+    %x(i, :) = att * sin(2*pi*fc*t_tau);
+    %x(i, :) = att * exp(1i*2*pi*fc*t_tau);
+    x(i, :) = att * cos(2*pi*(1/2*t_tau.^2*B/sampleInterval+fminR*t_tau));
 end
 aoa_direct = 90;
 
@@ -60,22 +63,24 @@ end
 x_multipath = zeros(Nr, length(t));
 for i=1:Nr
     %x_multipath(i, :) = att_multipath(i) * sin(2*pi*fc*t_tau_multipath(i, :));
-    x_multipath(i, :) = att_multipath(i) * exp(1i*2*pi*fc*t_tau_multipath(i, :));
-    %x_multipath(i, :) = att_multipath(i) * cos(2*pi*(1/2*t_tau_multipath(i, :).^2*B/sampleInterval+fminR*t_tau_multipath(i, :)));
+    %x_multipath(i, :) = att_multipath(i) * exp(1i*2*pi*fc*t_tau_multipath(i, :));
+    x_multipath(i, :) = att_multipath(i) * cos(2*pi*(1/2*t_tau_multipath(i, :).^2*B/sampleInterval+fminR*t_tau_multipath(i, :)));
 end
 
 x_multipath2 = zeros(Nr, length(t));
 for i=1:Nr
     %x_multipath2(i, :) = att_multipath(i) * sin(2*pi*fc*t_tau_multipath(1,:)) ...
     %                     * exp(-1i*2*pi*spacing*(i-1)*cosd(aoa_multipath*2)/lambda);
-    x_multipath2(i, :) = att_multipath(i) * exp(1i*2*pi*fc*t_tau_multipath(1,:)) ...
-        * exp(-1i*2*pi*spacing*(i-1)*cosd(aoa_multipath)*2/lambda);
-    %x_multipath2(i, :) = att_multipath(i) * cos(2*pi*(1/2*t_tau_multipath(1, :).^2*B/sampleInterval+fminR*t_tau_multipath(1, :))) ...
-    %                     * exp(-1i*2*pi*spacing*(i-1)*cosd(aoa_multipath)*2/lambda);
+    %x_multipath2(i, :) = att_multipath(i) * exp(1i*2*pi*fc*t_tau_multipath(1,:)) ...
+    %                      * exp(-1i*2*pi*spacing*(i-1)*cosd(aoa_multipath)*2/lambda);
+    x_multipath2(i, :) = att_multipath(i) * cos(2*pi*(1/2*t_tau_multipath(1, :).^2*B/sampleInterval+fminR*t_tau_multipath(1, :))) ...
+                          * exp(-1i*2*pi*spacing*(i-1)*cosd(aoa_multipath)*2/lambda);
 end
 
 
-sig = x + x_multipath2; % sig contains sum of direct path and multipath
+sig = x + x_multipath; % sig contains sum of direct path and multipath
+
+sig = repmat(sig, 1, nChirps);
 
 incidentAz = 90;
 m_xPos = zeros(1, Nr);
@@ -87,10 +92,10 @@ m_zPos = zeros(1, Nr);
 
 w = opt_beam(sig, Nr);
 
-beam = w * sig;
+y_MINE = w * sig;
 
 figure;
-plot(real(beam));
+plot(real(y_MINE));
 
 hold on;
 plot(real(y_DAS));
@@ -99,8 +104,28 @@ plot(real(y_DAS));
 plot(real(y_MVDR2));
 plot(real(sig(1, :)));
 
-xlim([0 180]);
+xlim([0 360]);
 %legend("MINE", "DAS", "LCMV", "MVDR2", "No Beam");
 legend("MINE", "DAS", "MVDR2", "No Beam");
 
 %legend("MINE", "MVDR", "MVDR2", "No Beam");
+
+for mic = 1 : Nr
+    sig(mic, :) = fftFilter(sig(mic, :),Fs,fminR,fmaxR,50);
+end
+
+%figure; spectrogram(Sr_noise(1,:),'yaxis',128,120,128,Fs)
+
+% % de-chirping
+[f, profile_mic1] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, sig(1,:), 'No Beam at Mic1');
+
+[f, profile_DAS] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, y_DAS, 'DAS');
+[f, profile_MVDR] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, y_MVDR, 'MVDR');
+[f, profile_LCMV] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, y_LCMV, 'LCMV');
+[f, profile_LP] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, y_LP, 'LP');
+[f, profile_MINE] = dechirp_fmcw(rtDist, Fs, fminR, B, vs, sampleInterval, nChirps, y_MINE, 'MINE');
+
+
+figure;
+dist = vs*f*sampleInterval*1000/B;
+plot(dist, profile_mic1(1,:));

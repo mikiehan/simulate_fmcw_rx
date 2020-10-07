@@ -1,3 +1,3 @@
 function [c,ceq] = nlcon(x)
-  c = sum(abs(x)) - 1.0;
-  ceq = [];
+  c = []; %sum(abs(exp(1i*x))) - 1.0;
+  ceq = x(1) - 0;
