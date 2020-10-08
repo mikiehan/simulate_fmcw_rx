@@ -31,7 +31,7 @@ ebi = reshape(ebi, 1, 1, num_mics);
 w_DAS = weightingVectorDAS(ebi);
 w_MVDR = weightingVectorMVDR(x.', ebi);
 
-cov_mat = sensorcov(m_yPos, [-60 60], db2pow(-5));
+cov_mat = sensorcov(m_yPos, [-90 90], db2pow(0));
 w_MVDR2 = mvdrweights(m_yPos, [incidentAz; 0],cov_mat);
 w_MVDR2 = reshape(w_MVDR2, 1, 1, num_mics);
 

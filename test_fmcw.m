@@ -10,8 +10,7 @@ nChirps = 5;
 
 Nr = 4; % 4 microphones
 rtDist = 8; % approx. round-trip distance from sound source to microphones
-xPosWall = 1; % side wall x position for multipath
-mpAngle = 60; % multipath angle in degree
+wallDist = 1; % side wall x position for multipath
 %addNoise = true;
 
 
@@ -27,8 +26,19 @@ simLenS = nChirps * K / Fs;
 
 t=(0:K-1)*Ts;
 
+% mic positions
+m_xPos = zeros(1, Nr);
+m_yPos = spacing * (0:Nr-1);
+m_zPos = zeros(1, Nr);
+
+% object of reflection (assume point object)
+o_xPos = rtDist/2;
+o_yPos = 0;
+o_zPos = 0;
+
 distance = rtDist/2;
 %att = 1; % for now just 1
+
 
 att = distance^-4; % attenuation
 
@@ -44,16 +54,25 @@ end
 aoa_direct = 90;
 
 %angle of arrival range 0:180 (Same definition as Dina Katabi RF-IDraw)
-
-aoa_multipath = 60;
-d_prime = distance/2/sind(aoa_multipath); % distance at ref mic (last mic)
-
-distance_multipath = spacing*cosd(aoa_multipath)*[0:Nr-1] + d_prime;
-att_multipath = ones(1, Nr); % for now just 1
+mpAngles = zeros(1, Nr); % multipath aoa in degree
 for i=1:Nr
-    att_multipath(i) = distance^-2 * distance_multipath(i)^-4;
+    mpAngles(i) = atand(distance / (2 * wallDist + spacing * (i-1)));
 end
-tau_multipath = (distance_multipath * 2 + distance)/vs;
+dist3 = sqrt(distance^2 + (2 * wallDist + spacing * [0:Nr-1]).^2); % distance of multipath coming back from object to mic
+dist2 = zeros(1, Nr);
+dist1 = zeros(1, Nr);
+for i=1:Nr
+    dist2(i) = (wallDist + spacing * (i-1))/cosd(mpAngles(i));
+    dist1(i) = dist3(i) - dist2(i);
+end
+
+att_multipath = ones(1, Nr); 
+for i=1:Nr
+    att_multipath(i) = distance^-2 * dist1(i)^-2 * dist2(i)^-2;
+end
+
+distance_multipath = distance + dist3;
+tau_multipath = distance_multipath/vs;
 
 t_tau_multipath = zeros(Nr, length(t));
 for i=1:Nr
@@ -83,9 +102,6 @@ sig = x + x_multipath; % sig contains sum of direct path and multipath
 sig = repmat(sig, 1, nChirps);
 
 incidentAz = 90;
-m_xPos = zeros(1, Nr);
-m_yPos = spacing * (0:Nr-1);
-m_zPos = zeros(1, Nr);
 
 [y_DAS, y_MVDR, y_MVDR2, y_LCMV, y_LP, y_MINE] = beamform(incidentAz, fc, vs, Fs, sig, [], fmaxR, m_xPos, m_yPos, m_zPos, Nr);
 
