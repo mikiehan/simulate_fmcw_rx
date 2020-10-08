@@ -14,6 +14,7 @@ xPosWall = 1; % side wall x position for multipath
 mpAngle = 60; % multipath angle in degree
 %addNoise = true;
 
+
 fmaxR = fminR + B;
 fc = (fminR + fmaxR)/2;
 
@@ -66,15 +67,15 @@ for i=1:Nr
     x_multipath(i, :) = att_multipath(i) * cos(2*pi*(1/2*t_tau_multipath(i, :).^2*B/sampleInterval+fminR*t_tau_multipath(i, :)));
 end
 
-x_multipath2 = zeros(Nr, length(t));
-for i=1:Nr
-    %x_multipath2(i, :) = att_multipath(i) * sin(2*pi*fc*t_tau_multipath(1,:)) ...
-    %                     * exp(-1i*2*pi*spacing*(i-1)*cosd(aoa_multipath*2)/lambda);
-    %x_multipath2(i, :) = att_multipath(i) * exp(1i*2*pi*fc*t_tau_multipath(1,:)) ...
-    %                      * exp(-1i*2*pi*spacing*(i-1)*cosd(aoa_multipath)*2/lambda);
-    x_multipath2(i, :) = att_multipath(i) * cos(2*pi*(1/2*t_tau_multipath(1, :).^2*B/sampleInterval+fminR*t_tau_multipath(1, :))) ...
-                          * exp(-1i*2*pi*spacing*(i-1)*cosd(aoa_multipath)*2/lambda);
-end
+% x_multipath2 = zeros(Nr, length(t));
+% for i=1:Nr
+%     %x_multipath2(i, :) = att_multipath(i) * sin(2*pi*fc*t_tau_multipath(1,:)) ...
+%     %                     * exp(-1i*2*pi*spacing*(i-1)*cosd(aoa_multipath*2)/lambda);
+%     %x_multipath2(i, :) = att_multipath(i) * exp(1i*2*pi*fc*t_tau_multipath(1,:)) ...
+%     %                      * exp(-1i*2*pi*spacing*(i-1)*cosd(aoa_multipath)*2/lambda);
+%     x_multipath2(i, :) = att_multipath(i) * cos(2*pi*(1/2*t_tau_multipath(1, :).^2*B/sampleInterval+fminR*t_tau_multipath(1, :))) ...
+%                           * exp(-1i*2*pi*spacing*(i-1)*cosd(aoa_multipath)*2/lambda);
+% end
 
 
 sig = x + x_multipath; % sig contains sum of direct path and multipath
@@ -86,12 +87,7 @@ m_xPos = zeros(1, Nr);
 m_yPos = spacing * (0:Nr-1);
 m_zPos = zeros(1, Nr);
 
-[y_DAS, y_MVDR, y_MVDR2, y_LCMV, y_LP, y_FR] = beamform(incidentAz, fc, vs, Fs, sig, [], fmaxR, m_xPos, m_yPos, m_zPos, Nr);
-
-
-w = opt_beam(sig, Nr);
-
-y_MINE = w * sig;
+[y_DAS, y_MVDR, y_MVDR2, y_LCMV, y_LP, y_MINE] = beamform(incidentAz, fc, vs, Fs, sig, [], fmaxR, m_xPos, m_yPos, m_zPos, Nr);
 
 figure;
 plot(real(y_MINE));

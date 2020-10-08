@@ -1,4 +1,4 @@
-function [y_DAS, y_MVDR, y_LCMV, y_LP, y_FR] = beamform(incidentAz, fc, c, fs, Sr, rxarray, fmaxR, m_xPos, m_yPos, m_zPos, num_mics)
+function [y_DAS, y_MVDR, y_MVDR2, y_LCMV, y_LP, y_MINE] = beamform(incidentAz, fc, c, fs, Sr, rxarray, fmaxR, m_xPos, m_yPos, m_zPos, num_mics)
 
 x = Sr'; 
 x = x(:,1:num_mics);
@@ -27,38 +27,29 @@ ebi = steeringVector(m_xPos_used, m_yPos_used, m_zPos_used, fc, c, incidentAngle
 ebi = reshape(ebi, 1, 1, num_mics);
 
 
-% beamformer = phased.PhaseShiftBeamformer('SensorArray',rxarray,...
-%     'OperatingFrequency',fc,'PropagationSpeed',c,...
-%     'Direction',[incidentAz; 0],'WeightsOutputPort',true);
-% [y_PS,w_PS] = beamformer(x);
-
-% normvec = getElementNormal(rxarray);
-% 
-% microphone = phased.OmnidirectionalMicrophoneElement('FrequencyRange',[20 fmaxR]);
-% rxarray_trimmed = phased.ConformalArray(...
-%     'ElementPosition',[m_xPos_used;m_yPos_used;m_zPos_used],...
-%     'Element', microphone, ...
-%     'ElementNormal',normvec(:,num_mics));
-% 
-% beamformer = phased.FrostBeamformer('SensorArray',rxarray_trimmed,...
-%      'PropagationSpeed',c,'SampleRate', fs, ...
-%      'Direction',[incidentAz; 0],'WeightsOutputPort',true);
-%  [y_FR,w_FR] = beamformer(x);
-
-y_FR = [];
-w_FR = [];
-
 w_DAS = weightingVectorDAS(ebi);
 w_MVDR = weightingVectorMVDR(x.', ebi);
 
-cov_mat = cov(x);
+cov_mat = sensorcov(m_yPos, [-60 60], db2pow(-10));
 w_MVDR2 = mvdrweights(m_yPos, [incidentAz; 0],cov_mat);
 w_MVDR2 = reshape(w_MVDR2, 1, 1, num_mics);
 
 w_LCMV = weightingVectorLCMV(x.');
 w_LP = weightingVectorLP(x.');
+w_MINE = opt_beam(Sr, num_mics);
+
+%normalize weights
+w_DAS = w_DAS/sum(abs(w_DAS));
+w_MVDR = w_MVDR/sum(abs(w_MVDR));
+w_MVDR2 = w_MVDR2/sum(abs(w_MVDR2));
+w_LCMV = w_LCMV/sum(abs(w_LCMV));
+w_LP = w_LP/sum(abs(w_LP));
+w_MINE = w_MINE/sum(abs(w_MINE)); % normalize weight
+
+
 AF_DAS = arrayFactor(w_DAS, escan);
 AF_MVDR = arrayFactor(w_MVDR, escan);
+AF_MVDR2 = arrayFactor(w_MVDR2, escan);
 AF_LCMV = arrayFactor(w_LCMV, escan);
 AF_LP = arrayFactor(w_LP, escan);
 %AF_FR = arrayFactor(w_FR, escan);
@@ -68,6 +59,7 @@ figure;
 polarplot(deg2rad(thetaScanningAngles),AF_DAS')
 hold on
 polarplot(deg2rad(thetaScanningAngles),AF_MVDR')
+polarplot(deg2rad(thetaScanningAngles),AF_MVDR2')
 polarplot(deg2rad(thetaScanningAngles),AF_LCMV')
 polarplot(deg2rad(thetaScanningAngles),AF_LP')
 %polarplot(deg2rad(thetaScanningAngles),AF_FR')
@@ -84,14 +76,16 @@ hold off
 
 %legend(["DAS", "MVDR"]);
 %legend(["DAS", "MVDR", "LCMV", "LP", "FR"]); %, "PS"])
-legend(["DAS", "MVDR", "LCMV", "LP"]); %, "PS"])
+legend(["DAS", "MVDR", "MVDR2", "LCMV", "LP"]); %, "PS"])
 %%
 % Beamforming
 y_DAS = (x*squeeze(w_DAS))';
 y_MVDR = (x*squeeze(w_MVDR))';
+y_MVDR2 = (x*squeeze(w_MVDR2))';
 y_LCMV = (x*squeeze(w_LCMV))';
 y_LP = (x*squeeze(w_LP))';
-y_FR = y_FR';
+y_MINE = w_MINE * sig;
+
 %y_PS = y_PS';
 % figure(4);
 % plot(t,real(x(:,1)), t,real(x_raw(:,1)));
