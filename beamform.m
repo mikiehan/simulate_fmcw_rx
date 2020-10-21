@@ -31,26 +31,26 @@ ebi = reshape(ebi, 1, 1, num_mics);
 w_DAS = weightingVectorDAS(ebi);
 w_MVDR = weightingVectorMVDR(x.', ebi);
 
-cov_mat = sensorcov(m_yPos, [-90 90], db2pow(0));
-w_MVDR2 = mvdrweights(m_yPos, [incidentAz; 0],cov_mat);
-w_MVDR2 = reshape(w_MVDR2, 1, 1, num_mics);
+%cov_mat = sensorcov(m_yPos, [-90 90]); %, db2pow(0));
+%w_MVDR2 = mvdrweights(m_yPos, [incidentAz; 0],cov_mat);
+%w_MVDR2 = reshape(w_MVDR2, 1, 1, num_mics);
 
 w_LCMV = weightingVectorLCMV(x.');
 w_LP = weightingVectorLP(x.');
 w_MINE = opt_beam(Sr, num_mics);
 
 %normalize weights
-w_DAS = w_DAS/sum(abs(w_DAS));
-w_MVDR = w_MVDR/sum(abs(w_MVDR));
-w_MVDR2 = w_MVDR2/sum(abs(w_MVDR2));
-w_LCMV = w_LCMV/sum(abs(w_LCMV));
-w_LP = w_LP/sum(abs(w_LP));
-w_MINE = w_MINE/sum(abs(w_MINE)); % normalize weight
+w_DAS = w_DAS/sum(abs(w_DAS))*num_mics;
+w_MVDR = w_MVDR/sum(abs(w_MVDR))*num_mics;
+%w_MVDR2 = w_MVDR2/sum(abs(w_MVDR2));
+w_LCMV = w_LCMV/sum(abs(w_LCMV))*num_mics;
+w_LP = w_LP/sum(abs(w_LP))* num_mics;
+w_MINE = w_MINE/sum(abs(w_MINE))*num_mics; % normalize weight
 
 
 AF_DAS = arrayFactor(w_DAS, escan);
 AF_MVDR = arrayFactor(w_MVDR, escan);
-AF_MVDR2 = arrayFactor(w_MVDR2, escan);
+%AF_MVDR2 = arrayFactor(w_MVDR2, escan);
 AF_LCMV = arrayFactor(w_LCMV, escan);
 AF_LP = arrayFactor(w_LP, escan);
 AF_MINE = arrayFactor(w_MINE', escan);
@@ -61,7 +61,7 @@ figure;
 polarplot(deg2rad(thetaScanningAngles),AF_DAS')
 hold on
 polarplot(deg2rad(thetaScanningAngles),AF_MVDR')
-polarplot(deg2rad(thetaScanningAngles),AF_MVDR2')
+%polarplot(deg2rad(thetaScanningAngles),AF_MVDR2')
 polarplot(deg2rad(thetaScanningAngles),AF_LCMV')
 polarplot(deg2rad(thetaScanningAngles),AF_LP')
 polarplot(deg2rad(thetaScanningAngles),AF_MINE')
@@ -79,12 +79,12 @@ hold off
 
 %legend(["DAS", "MVDR"]);
 %legend(["DAS", "MVDR", "LCMV", "LP", "FR"]); %, "PS"])
-legend(["DAS", "MVDR", "MVDR2", "LCMV", "LP", "MINE"]); %, "PS"])
+legend(["DAS", "MVDR", "LCMV", "LP", "MINE"]); %, "PS"])
 %%
 % Beamforming
 y_DAS = (x*squeeze(w_DAS))';
 y_MVDR = (x*squeeze(w_MVDR))';
-y_MVDR2 = (x*squeeze(w_MVDR2))';
+y_MVDR2 = []; % (x*squeeze(w_MVDR2))';
 y_LCMV = (x*squeeze(w_LCMV))';
 y_LP = (x*squeeze(w_LP))';
 y_MINE = w_MINE * Sr;
