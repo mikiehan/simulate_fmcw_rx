@@ -40,12 +40,12 @@ w_LP = weightingVectorLP(x.');
 w_MINE = opt_beam(Sr, num_mics);
 
 %normalize weights
-w_DAS = w_DAS/sum(abs(w_DAS))*num_mics;
-w_MVDR = w_MVDR/sum(abs(w_MVDR))*num_mics;
+w_DAS = w_DAS/sum(abs(w_DAS));
+w_MVDR = w_MVDR/sum(abs(w_MVDR));
 %w_MVDR2 = w_MVDR2/sum(abs(w_MVDR2));
-w_LCMV = w_LCMV/sum(abs(w_LCMV))*num_mics;
-w_LP = w_LP/sum(abs(w_LP))* num_mics;
-w_MINE = w_MINE/sum(abs(w_MINE))*num_mics; % normalize weight
+w_LCMV = w_LCMV/sum(abs(w_LCMV));
+w_LP = w_LP/sum(abs(w_LP));
+w_MINE = w_MINE/sum(abs(w_MINE)); % normalize weight
 
 
 AF_DAS = arrayFactor(w_DAS, escan);

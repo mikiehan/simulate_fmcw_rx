@@ -148,8 +148,8 @@ plot(real(w_MINE_MP1(2,:)));
 % w_MINE_MP2 = w_MINE_MP2/sum(abs(w_MINE_MP2)); %normalize weight
 % y_MINE_MP = w_MINE_MP2 * x_recovered_all; 
 
-y_MINE_MP = real(sum(x_recovered_all)); 
-y_MINE_ALL = real(sum(x + x_recovered_all))/2;
+y_MINE_MP = real(sum(x_recovered_all))/Nr; 
+y_MINE_ALL = real(sum(x + x_recovered_all))/(2*Nr);
 
 sig = real(x + x_multipath); % sig contains sum of direct path and multipath
 
